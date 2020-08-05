@@ -206,6 +206,22 @@ func (connServer *ConnServer) publishResp(cur *ChunkStream) error {
 	return connServer.writeMsg(cur.CSID, cur.StreamID, "onStatus", 0, nil, event)
 }
 
+func (connServer *ConnServer) publishRespMockCrash(cur *ChunkStream) error {
+	event := make(amf.Object)
+	event["level"] = "finish"
+	event["code"] = "NetStream.Publish.Crash"
+	event["description"] = "Server is down"
+	return connServer.writeMsg(cur.CSID, cur.StreamID, "onStatus", 0, nil, event)
+}
+
+func (connServer *ConnServer) publishRespMockUpdateCrash(cur *ChunkStream) error {
+	event := make(amf.Object)
+	event["level"] = "finish"
+	event["code"] = "NetStream.Update.Crash"
+	event["description"] = "Server is down"
+	return connServer.writeMsg(cur.CSID, cur.StreamID, "onStatus", 0, nil, event)
+}
+
 func (connServer *ConnServer) playResp(cur *ChunkStream) error {
 	connServer.conn.SetRecorded()
 	connServer.conn.SetBegin()
@@ -276,6 +292,17 @@ func (connServer *ConnServer) handleCmdMsg(c *ChunkStream) error {
 			if err = connServer.publishResp(c); err != nil {
 				return err
 			}
+			//go func() {
+			//	time.Sleep(time.Second * 10)
+			//	connServer.publishRespMockUpdateCrash(c)
+			//	connServer.conn.Close()
+			//	log.Println("yuheng mock update crash")
+			//}()
+			//if err = connServer.publishRespMockCrash(c); err != nil {
+			//	return err
+			//}
+			//err = amf.Error("yuheng mock crash")
+			//return err
 			connServer.done = true
 			connServer.isPublisher = true
 			log.Debug("handle publish req done")
